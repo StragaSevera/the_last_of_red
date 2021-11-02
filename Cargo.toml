@@ -7,3 +7,5 @@ edition = "2018"
 
 [dependencies]
 bevy = "0.5"
+static_init = "1.0.1"
+bitmask-enum = "1.1.2"

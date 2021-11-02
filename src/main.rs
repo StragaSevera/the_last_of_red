@@ -1,46 +1,38 @@
+mod platform;
+mod player;
+
 use bevy::prelude::*;
 
-struct Person;
-struct Name(String);
-
-pub struct MainPlugin;
-
-impl Plugin for MainPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(GreetTimer(Timer::from_seconds(2.0, true)))
-            .add_startup_system(add_people.system())
-            .add_system(greet_people.system());
-    }
-}
+use crate::{
+    platform::PlatformBundle,
+    player::{player_input_system, player_move_system, PlayerBundle},
+};
 
 fn main() {
     App::build()
+        .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
         .add_plugins(DefaultPlugins)
         .add_plugin(MainPlugin)
         .run();
 }
 
-fn add_people(mut commands: Commands) {
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Elaina Proctor".to_string()));
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Renzo Hume".to_string()));
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Zayna Nieves".to_string()));
+pub struct MainPlugin;
+
+impl Plugin for MainPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_startup_system(setup.system())
+            .add_system(player_input_system.system())
+            .add_system(player_move_system.system());
+    }
 }
 
-struct GreetTimer(Timer);
+fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+    commands.spawn_bundle(UiCameraBundle::default());
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-fn greet_people(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<&Name, With<Person>>) {
-    if timer.0.tick(time.delta()).just_finished() {
-        for name in query.iter() {
-            println!("hello {}!", name.0);
-        }
-    }
+    commands.spawn_bundle(PlayerBundle::new(&mut materials));
+    commands.spawn_bundle(PlatformBundle::new(
+        Transform::from_xyz(30.0, -80.0, 0.0),
+        &mut materials,
+    ));
 }
